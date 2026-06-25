@@ -8,8 +8,7 @@ import type { CoffeeNoteInput } from '@/types';
 const AddPage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { addNote, updateNote, getNoteById, getShopInfoById } =
-    useCoffeeNotes();
+  const { notes, addNote, updateNote } = useCoffeeNotes();
 
   const editId = params.get('editId');
   const shopId = params.get('shopId');
@@ -19,7 +18,7 @@ const AddPage: React.FC = () => {
 
   const initialData = useMemo<CoffeeNoteInput | undefined>(() => {
     if (editId) {
-      const note = getNoteById(editId);
+      const note = notes.find((n) => n.id === editId);
       if (note) {
         return {
           shopName: note.shopName,
@@ -33,7 +32,7 @@ const AddPage: React.FC = () => {
       return undefined;
     }
     if (shopId) {
-      const info = getShopInfoById(shopId);
+      const info = notes.find((n) => n.id === shopId);
       if (info) {
         return {
           shopName: info.shopName,
@@ -45,19 +44,19 @@ const AddPage: React.FC = () => {
       }
     }
     return undefined;
-  }, [editId, shopId, getNoteById, getShopInfoById]);
+  }, [editId, shopId, notes]);
 
   useEffect(() => {
     if (editId) {
-      const note = getNoteById(editId);
+      const note = notes.find((n) => n.id === editId);
       if (note) setPrefillLabel(note.shopName);
       return;
     }
     if (shopId) {
-      const info = getShopInfoById(shopId);
+      const info = notes.find((n) => n.id === shopId);
       if (info) setPrefillLabel(`${info.shopName} · ${info.city}`);
     }
-  }, [editId, shopId, getNoteById, getShopInfoById]);
+  }, [editId, shopId, notes]);
 
   const handleSubmit = (data: CoffeeNoteInput) => {
     if (mode === 'edit' && editId) {

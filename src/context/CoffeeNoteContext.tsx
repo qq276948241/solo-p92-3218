@@ -58,7 +58,8 @@ export const CoffeeNoteProvider: React.FC<{ children: React.ReactNode }> = ({
         const idx = prev.findIndex((n) => n.id === id);
         if (idx === -1) return prev;
         updated = {
-          ...prev[idx],
+          id: prev[idx].id,
+          createdAt: prev[idx].createdAt,
           shopName: input.shopName.trim(),
           city: input.city.trim(),
           beanType: input.beanType,

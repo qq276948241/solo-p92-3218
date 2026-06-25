@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -29,9 +29,12 @@ const formatDate = (iso: string): string => {
 const DetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getNoteById } = useCoffeeNotes();
+  const { notes } = useCoffeeNotes();
 
-  const note = id ? getNoteById(id) : undefined;
+  const note = useMemo(() => {
+    if (!id) return undefined;
+    return notes.find((n) => n.id === id);
+  }, [id, notes]);
 
   if (!note) {
     return <NotFoundState onBack={() => navigate('/')} />;
@@ -62,7 +65,10 @@ const DetailPage: React.FC = () => {
       </div>
 
       {note.image ? (
-        <div className="rounded-card overflow-hidden shadow-paper border border-brown/[0.08]">
+        <div
+          key={note.id}
+          className="rounded-card overflow-hidden shadow-paper border border-brown/[0.08]"
+        >
           <img
             src={note.image}
             alt={note.shopName}
