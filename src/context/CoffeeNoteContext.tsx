@@ -6,23 +6,14 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import type { BeanType, CoffeeNote, ShopInfo } from '@/types';
+import type { BeanType, CoffeeNote, CoffeeNoteInput, ShopInfo } from '@/types';
 import { loadNotes, saveNotes, generateId } from '@/utils/storage';
 import { SAMPLE_NOTES } from '@/utils/sampleData';
 
-interface NewNoteInput {
-  shopName: string;
-  city: string;
-  beanType: BeanType;
-  rating: number;
-  feelings: string;
-  image?: string;
-}
-
 interface CoffeeNoteContextValue {
   notes: CoffeeNote[];
-  addNote: (input: NewNoteInput) => CoffeeNote;
-  updateNote: (id: string, input: NewNoteInput) => CoffeeNote | undefined;
+  addNote: (input: CoffeeNoteInput) => CoffeeNote;
+  updateNote: (id: string, input: CoffeeNoteInput) => CoffeeNote | undefined;
   getNoteById: (id: string) => CoffeeNote | undefined;
   getShopInfoById: (id: string) => ShopInfo | undefined;
 }
@@ -45,7 +36,7 @@ export const CoffeeNoteProvider: React.FC<{ children: React.ReactNode }> = ({
     saveNotes(notes);
   }, [notes]);
 
-  const addNote = useCallback((input: NewNoteInput): CoffeeNote => {
+  const addNote = useCallback((input: CoffeeNoteInput): CoffeeNote => {
     const newNote: CoffeeNote = {
       id: generateId(),
       shopName: input.shopName.trim(),
@@ -61,7 +52,7 @@ export const CoffeeNoteProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const updateNote = useCallback(
-    (id: string, input: NewNoteInput): CoffeeNote | undefined => {
+    (id: string, input: CoffeeNoteInput): CoffeeNote | undefined => {
       let updated: CoffeeNote | undefined;
       setNotes((prev) => {
         const idx = prev.findIndex((n) => n.id === id);

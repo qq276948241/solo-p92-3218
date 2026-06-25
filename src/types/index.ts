@@ -21,3 +21,12 @@ export interface ShopInfo {
   shopName: string;
   city: string;
 }
+
+export interface CoffeeNoteInput {
+  shopName: string;
+  city: string;
+  beanType: BeanType;
+  rating: number;
+  feelings: string;
+  image?: string;
+}
