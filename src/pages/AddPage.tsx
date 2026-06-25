@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Check, Coffee as CoffeeIcon } from 'lucide-react';
+import { ArrowLeft, Check, Coffee as CoffeeIcon, Pencil } from 'lucide-react';
 import StarRating from '@/components/StarRating';
 import TagChip from '@/components/TagChip';
 import ImageUploader from '@/components/ImageUploader';
@@ -10,10 +10,14 @@ import { BEAN_TYPES, type BeanType } from '@/types';
 const AddPage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { addNote, getShopInfoById } = useCoffeeNotes();
+  const { addNote, updateNote, getNoteById, getShopInfoById } =
+    useCoffeeNotes();
 
+  const editId = params.get('editId');
   const shopId = params.get('shopId');
-  const [prefillLabel, setPrefillLabel] = useState<string>('');
+  const isEdit = Boolean(editId);
+
+  const [prefillLabel, setPrefillLabel] = useState('');
 
   const [shopName, setShopName] = useState('');
   const [city, setCity] = useState('');
@@ -24,14 +28,28 @@ const AddPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!shopId) return;
-    const info = getShopInfoById(shopId);
-    if (info) {
-      setShopName(info.shopName);
-      setCity(info.city);
-      setPrefillLabel(`${info.shopName} · ${info.city}`);
+    if (editId) {
+      const note = getNoteById(editId);
+      if (note) {
+        setShopName(note.shopName);
+        setCity(note.city);
+        setBeanType(note.beanType);
+        setRating(note.rating);
+        setFeelings(note.feelings);
+        setImage(note.image);
+        setPrefillLabel(note.shopName);
+      }
+      return;
     }
-  }, [shopId, getShopInfoById]);
+    if (shopId) {
+      const info = getShopInfoById(shopId);
+      if (info) {
+        setShopName(info.shopName);
+        setCity(info.city);
+        setPrefillLabel(`${info.shopName} · ${info.city}`);
+      }
+    }
+  }, [editId, shopId, getNoteById, getShopInfoById]);
 
   const validate = (): boolean => {
     const next: Record<string, string> = {};
@@ -45,16 +63,44 @@ const AddPage: React.FC = () => {
   const handleSubmit: React.FormEventHandler = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    const saved = addNote({
-      shopName,
-      city,
-      beanType,
-      rating,
-      feelings,
-      image,
-    });
-    navigate(`/note/${saved.id}`, { replace: true });
+
+    const payload = { shopName, city, beanType, rating, feelings, image };
+
+    if (isEdit && editId) {
+      const updated = updateNote(editId, payload);
+      navigate(updated ? `/note/${updated.id}` : '/', { replace: true });
+    } else {
+      const saved = addNote(payload);
+      navigate(`/note/${saved.id}`, { replace: true });
+    }
   };
+
+  const title = isEdit
+    ? '修改这一杯 ✏️'
+    : prefillLabel
+      ? '再记一杯 ☕️'
+      : '记下这一杯 ☕️';
+
+  const subtitle = isEdit
+    ? '改好之后保存，创建时间不变'
+    : '花两分钟，把今天的味道保存下来吧';
+
+  const badge = isEdit ? (
+    <div className="flex items-center gap-2 text-sm text-ink-soft bg-brown/5 border border-brown/10 rounded-full px-3 py-1.5">
+      <Pencil size={14} className="text-brown" />
+      <span>
+        编辑模式：<span className="font-medium text-ink">{prefillLabel}</span>
+      </span>
+    </div>
+  ) : prefillLabel ? (
+    <div className="flex items-center gap-2 text-sm text-ink-soft bg-brown/5 border border-brown/10 rounded-full px-3 py-1.5">
+      <Check size={14} className="text-brown" />
+      <span>
+        快速记录：
+        <span className="font-medium text-ink">{prefillLabel}</span>
+      </span>
+    </div>
+  ) : null;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -67,23 +113,14 @@ const AddPage: React.FC = () => {
           <ArrowLeft size={18} />
           <span>返回</span>
         </button>
-        {prefillLabel && (
-          <div className="flex items-center gap-2 text-sm text-ink-soft bg-brown/5 border border-brown/10 rounded-full px-3 py-1.5">
-            <Check size={14} className="text-brown" />
-            <span>
-              快速记录：<span className="font-medium text-ink">{prefillLabel}</span>
-            </span>
-          </div>
-        )}
+        {badge}
       </div>
 
       <div className="text-center sm:text-left">
         <h1 className="font-serif text-3xl sm:text-4xl font-bold text-ink text-shadow-soft">
-          {prefillLabel ? '再记一杯 ☕️' : '记下这一杯 ☕️'}
+          {title}
         </h1>
-        <p className="mt-2 text-sm text-ink-soft">
-          花两分钟，把今天的味道保存下来吧
-        </p>
+        <p className="mt-2 text-sm text-ink-soft">{subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="paper-card p-6 sm:p-8 space-y-6">
@@ -161,12 +198,9 @@ const AddPage: React.FC = () => {
           >
             取消
           </button>
-          <button
-            type="submit"
-            className="btn-primary w-full sm:w-auto"
-          >
-            <CoffeeIcon size={18} />
-            <span>保存这一杯</span>
+          <button type="submit" className="btn-primary w-full sm:w-auto">
+            {isEdit ? <Pencil size={18} /> : <CoffeeIcon size={18} />}
+            <span>{isEdit ? '保存修改' : '保存这一杯'}</span>
           </button>
         </div>
       </form>

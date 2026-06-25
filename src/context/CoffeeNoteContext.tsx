@@ -22,6 +22,7 @@ interface NewNoteInput {
 interface CoffeeNoteContextValue {
   notes: CoffeeNote[];
   addNote: (input: NewNoteInput) => CoffeeNote;
+  updateNote: (id: string, input: NewNoteInput) => CoffeeNote | undefined;
   getNoteById: (id: string) => CoffeeNote | undefined;
   getShopInfoById: (id: string) => ShopInfo | undefined;
 }
@@ -59,6 +60,30 @@ export const CoffeeNoteProvider: React.FC<{ children: React.ReactNode }> = ({
     return newNote;
   }, []);
 
+  const updateNote = useCallback(
+    (id: string, input: NewNoteInput): CoffeeNote | undefined => {
+      let updated: CoffeeNote | undefined;
+      setNotes((prev) => {
+        const idx = prev.findIndex((n) => n.id === id);
+        if (idx === -1) return prev;
+        updated = {
+          ...prev[idx],
+          shopName: input.shopName.trim(),
+          city: input.city.trim(),
+          beanType: input.beanType,
+          rating: Math.max(1, Math.min(5, Math.round(input.rating))),
+          feelings: input.feelings.trim(),
+          image: input.image,
+        };
+        const next = [...prev];
+        next[idx] = updated;
+        return next;
+      });
+      return updated;
+    },
+    [],
+  );
+
   const getNoteById = useCallback(
     (id: string): CoffeeNote | undefined => {
       return notes.find((n) => n.id === id);
@@ -76,8 +101,8 @@ export const CoffeeNoteProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const value = useMemo<CoffeeNoteContextValue>(
-    () => ({ notes, addNote, getNoteById, getShopInfoById }),
-    [notes, addNote, getNoteById, getShopInfoById],
+    () => ({ notes, addNote, updateNote, getNoteById, getShopInfoById }),
+    [notes, addNote, updateNote, getNoteById, getShopInfoById],
   );
 
   return (

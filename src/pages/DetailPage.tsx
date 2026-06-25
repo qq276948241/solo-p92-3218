@@ -6,6 +6,7 @@ import {
   Calendar,
   Coffee,
   RefreshCcw,
+  Pencil,
 } from 'lucide-react';
 import StarRating from '@/components/StarRating';
 import TagChip from '@/components/TagChip';
@@ -48,10 +49,16 @@ const DetailPage: React.FC = () => {
           <span>返回</span>
         </button>
 
-        <Link to={`/add?shopId=${note.id}`} className="btn-primary text-sm">
-          <RefreshCcw size={18} />
-          <span>再记一杯</span>
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to={`/add?editId=${note.id}`} className="btn-ghost text-sm">
+            <Pencil size={18} />
+            <span>编辑</span>
+          </Link>
+          <Link to={`/add?shopId=${note.id}`} className="btn-primary text-sm">
+            <RefreshCcw size={18} />
+            <span>再记一杯</span>
+          </Link>
+        </div>
       </div>
 
       {note.image ? (
